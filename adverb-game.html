@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Adverbios de Frecuencia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e0f2f7; /* Azul claro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            overflow: hidden; /* Para el efecto de fondo */
+        }
+
+        /* Efecto de fondo sutil */
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            right: -50px;
+            bottom: -50px;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.1) 75%, transparent 75%, transparent);
+            background-size: 80px 80px;
+            opacity: 0.3;
+            z-index: 0;
+            border-radius: 15px;
+        }
+
+        .game-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #2a6f97; /* Azul oscuro */
+            margin-bottom: 15px;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #0077b6; /* Azul medio */
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #e0f7fa;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .sentence-area {
+            background-color: #f0f8ff; /* Azul muy claro */
+            border: 2px solid #b3e0ff; /* Borde azul claro */
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            min-height: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.4em;
+            font-weight: 500;
+            color: #333;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .sentence-word {
+            display: inline-block;
+            padding: 5px 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .sentence-word:hover:not(.disabled) {
+            background-color: #cceeff; /* Azul claro al pasar el ratón */
+            transform: translateY(-2px);
+        }
+
+        .sentence-word.disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        .adverb-to-place {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #e63946; /* Rojo vibrante */
+            background-color: #ffe6e6; /* Fondo rojo claro */
+            padding: 12px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(230, 57, 70, 0.2);
+        }
+
+        .feedback-message {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 30px; /* Para evitar saltos de diseño */
+        }
+
+        .feedback-message.correct {
+            color: #28a745; /* Verde */
+        }
+
+        .feedback-message.incorrect {
+            color: #dc3545; /* Rojo */
+        }
+
+        .button-group {
+            margin-top: 25px;
+        }
+
+        button {
+            background-color: #007bff; /* Azul primario */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            font-weight: 600;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Estilos para la oración insertada */
+        .inserted-adverb {
+            color: #e63946; /* Mismo rojo que el adverbio a colocar */
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 0 3px; /* Espacio alrededor del adverbio insertado */
+        }
+
+        /* Responsividad */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            p {
+                font-size: 0.95em;
+            }
+
+            .score-display {
+                font-size: 1.1em;
+            }
+
+            .sentence-area {
+                font-size: 1.2em;
+                padding: 15px;
+            }
+
+            .adverb-to-place {
+                font-size: 1.5em;
+                padding: 10px 20px;
+            }
+
+            .feedback-message {
+                font-size: 1em;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-content">
+            <h1>Juego de Adverbios de Frecuencia</h1>
+            <p>Haz clic en la palabra <strong>antes</strong> de la cual debe ir el adverbio de frecuencia para formar una oración correcta.</p>
+
+            <div class="score-display">Puntuación: <span id="score">0</span></div>
+
+            <div class="sentence-area" id="sentenceArea">
+                </div>
+
+            <div class="adverb-to-place" id="adverbToPlace">
+                </div>
+
+            <div class="feedback-message" id="feedbackMessage">
+                </div>
+
+            <div class="button-group">
+                <button id="nextSentenceBtn" disabled>Siguiente Oración</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definición de las oraciones y sus respuestas correctas
+        // Cada objeto tiene:
+        // - text: La oración base.
+        // - adverb: El adverbio de frecuencia a usar.
+        // - correctPlacementIndex: El índice de la palabra *antes* de la cual se debe insertar el adverbio.
+        //   Por ejemplo, en "I eat breakfast." (I, eat, breakfast.), si el adverbio va antes de "eat", el índice es 1.
+        //   Si va antes de "go", en "They go to the cinema." (They, go, to, the, cinema.), el índice es 1.
+        //   Si es una oración con 'to be' (am, is, are), el adverbio va *después* del verbo 'to be'.
+        //   Ej: "She is happy." -> "She is always happy." El índice es 2 (después de 'is', antes de 'happy').
+        //   Para manejar esto, el 'correctPlacementIndex' será el índice de la palabra *después* de la cual se inserta el adverbio.
+        //   Luego, en el código, insertaremos el adverbio en `words[correctPlacementIndex]`
+        const sentences = [
+            { text: "I play soccer on Saturdays.", adverb: "usually", correctPlacementIndex: 1 }, // I usually play...
+            { text: "She is late for school.", adverb: "never", correctPlacementIndex: 2 }, // She is never late... (después de 'is')
+            { text: "They go to the beach in summer.", adverb: "often", correctPlacementIndex: 1 }, // They often go...
+            { text: "He studies for his exams.", adverb: "always", correctPlacementIndex: 1 }, // He always studies...
+            { text: "We eat pizza on Fridays.", adverb: "sometimes", correctPlacementIndex: 1 }, // We sometimes eat...
+            { text: "My mom cooks dinner.", adverb: "always", correctPlacementIndex: 1 }, // My mom always cooks...
+            { text: "The sun shines brightly.", adverb: "always", correctPlacementIndex: 1 }, // The sun always shines...
+            { text: "He is tired after work.", adverb: "usually", correctPlacementIndex: 2 }, // He is usually tired... (después de 'is')
+            { text: "They visit their grandparents.", adverb: "rarely", correctPlacementIndex: 1 }, // They rarely visit...
+            { text: "I drink coffee in the morning.", adverb: "always", correctPlacementIndex: 1 }, // I always drink...
+            { text: "She watches TV in the evenings.", adverb: "often", correctPlacementIndex: 1 }, // She often watches...
+            { text: "We are at home on Sundays.", adverb: "usually", correctPlacementIndex: 2 }, // We are usually at home... (después de 'are')
+            { text: "The cat sleeps on the sofa.", adverb: "always", correctPlacementIndex: 2 }, // The cat always sleeps... (después de 'cat')
+            { text: "He goes to the gym.", adverb: "sometimes", correctPlacementIndex: 1 }, // He sometimes goes...
+            { text: "They are happy.", adverb: "always", correctPlacementIndex: 2 }, // They are always happy... (después de 'are')
+            { text: "I clean my room.", adverb: "usually", correctPlacementIndex: 1 }, // I usually clean...
+            { text: "She reads books.", adverb: "often", correctPlacementIndex: 1 }, // She often reads...
+            { text: "We travel abroad.", adverb: "rarely", correctPlacementIndex: 1 }, // We rarely travel...
+            { text: "He is kind.", adverb: "always", correctPlacementIndex: 2 }, // He is always kind... (después de 'is')
+            { text: "They play video games.", adverb: "sometimes", correctPlacementIndex: 1 }, // They sometimes play...
+        ];
+
+        let currentSentence = null;
+        let score = 0;
+        let sentenceWords = []; // Almacena los elementos span de las palabras
+        let gameActive = false; // Controla si el juego está activo para evitar clics múltiples
+
+        const scoreDisplay = document.getElementById('score');
+        const sentenceArea = document.getElementById('sentenceArea');
+        const adverbToPlace = document.getElementById('adverbToPlace');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const nextSentenceBtn = document.getElementById('nextSentenceBtn');
+
+        /**
+         * Carga una nueva oración en el área de juego.
+         * Selecciona una oración aleatoria de la lista.
+         * Muestra el adverbio a colocar.
+         * Divide la oración en palabras y las muestra como elementos clicables.
+         */
+        function loadNewSentence() {
+            // Habilitar clics en las palabras nuevamente
+            gameActive = true;
+            nextSentenceBtn.disabled = true; // Deshabilitar el botón "Siguiente Oración"
+
+            // Limpiar el área de la oración
+            sentenceArea.innerHTML = '';
+            feedbackMessage.textContent = '';
+            feedbackMessage.className = 'feedback-message'; // Resetear clases de feedback
+
+            // Seleccionar una oración aleatoria
+            const randomIndex = Math.floor(Math.random() * sentences.length);
+            currentSentence = sentences[randomIndex];
+
+            // Mostrar el adverbio a colocar
+            adverbToPlace.textContent = currentSentence.adverb;
+
+            // Dividir la oración en palabras y crear elementos span clicables
+            // Se usa una expresión regular para dividir por espacios, pero manteniendo la puntuación unida a la palabra
+            const words = currentSentence.text.match(/\b\w+'?\w*\b|[.,!?;:]/g);
+            sentenceWords = []; // Reiniciar la lista de elementos de palabras
+
+            words.forEach((word, index) => {
+                const wordSpan = document.createElement('span');
+                wordSpan.textContent = word;
+                wordSpan.classList.add('sentence-word');
+                wordSpan.dataset.index = index; // Guardar el índice original de la palabra
+                wordSpan.addEventListener('click', handleWordClick);
+                sentenceArea.appendChild(wordSpan);
+                sentenceWords.push(wordSpan); // Guardar referencia al elemento span
+            });
+        }
+
+        /**
+         * Maneja el evento de clic en una palabra de la oración.
+         * Verifica si la posición seleccionada es correcta.
+         * Proporciona retroalimentación y actualiza la puntuación.
+         * @param {Event} event - El evento de clic.
+         */
+        function handleWordClick(event) {
+            if (!gameActive) return; // Si el juego no está activo, no permitir clics
+
+            const clickedWordIndex = parseInt(event.target.dataset.index);
+
+            // Determinar la posición de inserción.
+            // Si el adverbio va *después* del verbo 'to be', el índice de la palabra clicada debe ser el mismo que el 'correctPlacementIndex'.
+            // En otros casos, el adverbio va *antes* del verbo principal, por lo que el índice de la palabra clicada debe ser el mismo que el 'correctPlacementIndex'.
+            // Simplificamos la lógica: el usuario hace clic en la palabra *después* de la cual se inserta el adverbio.
+            // Si el adverbio va antes de la palabra, el usuario debe hacer clic en la palabra misma.
+            // Si el adverbio va después del verbo 'to be', el usuario debe hacer clic en el verbo 'to be'.
+
+            // Vamos a ajustar la lógica para que el usuario haga clic en la palabra *antes* de la cual se inserta el adverbio.
+            // Si la oración es "She is happy." y el adverbio es "always", y la respuesta correcta es "She is ALWAYS happy.",
+            // el usuario debe hacer clic en "happy". El índice de "happy" es 2.
+            // Entonces, el adverbio se inserta en la posición del índice clicado.
+
+            if (clickedWordIndex === currentSentence.correctPlacementIndex) {
+                feedbackMessage.textContent = '¡Correcto!';
+                feedbackMessage.classList.add('correct');
+                score++;
+            } else {
+                feedbackMessage.textContent = 'Incorrecto. Intenta de nuevo.';
+                feedbackMessage.classList.add('incorrect');
+                score = Math.max(0, score - 1); // Restar puntos, pero no bajar de 0
+            }
+
+            scoreDisplay.textContent = score;
+            displayCorrectSentence(currentSentence.correctPlacementIndex, currentSentence.adverb);
+            disableWordClicks(); // Deshabilitar clics después de la respuesta
+            gameActive = false; // Desactivar el juego para evitar más clics
+            nextSentenceBtn.disabled = false; // Habilitar el botón "Siguiente Oración"
+        }
+
+        /**
+         * Muestra la oración con el adverbio insertado en la posición correcta.
+         * @param {number} insertionIndex - El índice donde se debe insertar el adverbio.
+         * @param {string} adverb - El adverbio a insertar.
+         */
+        function displayCorrectSentence(insertionIndex, adverb) {
+            const words = currentSentence.text.match(/\b\w+'?\w*\b|[.,!?;:]/g);
+            let sentenceWithAdverb = [];
+
+            // Insertar el adverbio en la posición correcta
+            // Si el adverbio va antes de la palabra en `insertionIndex`, se inserta en esa posición.
+            // Ejemplo: "I play soccer." adverb "usually", insertionIndex 1 (before "play")
+            // words: ["I", "play", "soccer."]
+            // insertionIndex: 1
+            // Se inserta "usually" en la posición 1.
+            // Resultado: ["I", "usually", "play", "soccer."]
+
+            // Si el adverbio va después del verbo 'to be', el `insertionIndex` es el índice del verbo 'to be'.
+            // Ejemplo: "She is happy." adverb "always", insertionIndex 1 (after "is")
+            // words: ["She", "is", "happy."]
+            // insertionIndex: 1
+            // Se inserta "always" después de "is", es decir, en la posición 2.
+
+            // La lógica actual de `correctPlacementIndex` es el índice de la palabra *antes* de la cual se inserta el adverbio.
+            // Entonces, si `correctPlacementIndex` es 1, significa que el adverbio va antes de la palabra en el índice 1.
+            // `splice(index, 0, item)` inserta `item` en `index` sin eliminar nada.
+            let tempWords = [...words]; // Crear una copia para no modificar el original
+            tempWords.splice(insertionIndex, 0, `<span class="inserted-adverb">${adverb}</span>`);
+
+            sentenceArea.innerHTML = tempWords.join(' ');
+        }
+
+
+        /**
+         * Deshabilita los clics en todas las palabras de la oración.
+         */
+        function disableWordClicks() {
+            sentenceWords.forEach(wordSpan => {
+                wordSpan.removeEventListener('click', handleWordClick);
+                wordSpan.classList.add('disabled');
+            });
+        }
+
+        // Event listener para el botón "Siguiente Oración"
+        nextSentenceBtn.addEventListener('click', loadNewSentence);
+
+        // Iniciar el juego al cargar la página
+        window.onload = loadNewSentence;
+    </script>
+</body>
+</html>
